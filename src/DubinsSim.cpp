@@ -18,32 +18,46 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "dubins.h"
+#include "DubinsSim.h"
 #include <math.h>
 #include <assert.h>
 
-#define EPSILON (10e-10)
+#define DUBINSSIM_EPSILON (10e-10)
 
-#define LSL (0)
-#define LSR (1)
-#define RSL (2)
-#define RSR (3)
-#define RLR (4)
-#define LRL (5)
+#define DUBINSSIM_LSL (0)
+#define DUBINSSIM_LSR (1)
+#define DUBINSSIM_RSL (2)
+#define DUBINSSIM_RSR (3)
+#define DUBINSSIM_RLR (4)
+#define DUBINSSIM_LRL (5)
 
 // The three segment types a path can be made up of
-#define L_SEG (0)
-#define S_SEG (1)
-#define R_SEG (2)
+#define DUBINSSIM_L_SEG (0)
+#define DUBINSSIM_S_SEG (1)
+#define DUBINSSIM_R_SEG (2)
+
+#define DUBINSSIM_UNPACK_INPUTS(alpha, beta)     \
+    double sa = sin(alpha);            \
+    double sb = sin(beta);             \
+    double ca = cos(alpha);            \
+    double cb = cos(beta);             \
+    double c_ab = cos(alpha - beta);   \
+
+#define DUBINSSIM_PACK_OUTPUTS(outputs)       \
+    outputs[0]  = t;                \
+    outputs[1]  = p;                \
+    outputs[2]  = q;
+
+namespace DubinsSim {
 
 // The segment types for each of the Path types
 const int DIRDATA[][3] = {
-    { L_SEG, S_SEG, L_SEG },
-    { L_SEG, S_SEG, R_SEG },
-    { R_SEG, S_SEG, L_SEG },
-    { R_SEG, S_SEG, R_SEG },
-    { R_SEG, L_SEG, R_SEG },
-    { L_SEG, R_SEG, L_SEG }
+    { DUBINSSIM_L_SEG, DUBINSSIM_S_SEG, DUBINSSIM_L_SEG },
+    { DUBINSSIM_L_SEG, DUBINSSIM_S_SEG, DUBINSSIM_R_SEG },
+    { DUBINSSIM_R_SEG, DUBINSSIM_S_SEG, DUBINSSIM_L_SEG },
+    { DUBINSSIM_R_SEG, DUBINSSIM_S_SEG, DUBINSSIM_R_SEG },
+    { DUBINSSIM_R_SEG, DUBINSSIM_L_SEG, DUBINSSIM_R_SEG },
+    { DUBINSSIM_L_SEG, DUBINSSIM_R_SEG, DUBINSSIM_L_SEG }
 };
 
 DubinsWord dubins_words[] = {
@@ -54,18 +68,6 @@ DubinsWord dubins_words[] = {
     dubins_RLR,
     dubins_LRL,
 };
-
-#define UNPACK_INPUTS(alpha, beta)     \
-    double sa = sin(alpha);            \
-    double sb = sin(beta);             \
-    double ca = cos(alpha);            \
-    double cb = cos(beta);             \
-    double c_ab = cos(alpha - beta);   \
-
-#define PACK_OUTPUTS(outputs)       \
-    outputs[0]  = t;                \
-    outputs[1]  = p;                \
-    outputs[2]  = q;
 
 /**
  * Floating point modulus suitable for rings
@@ -92,7 +94,7 @@ int dubins_init_normalised( double alpha, double beta, double d, DubinsPath* pat
     for( i = 0; i < 6; i++ ) {
         double params[3];
         int err = dubins_words[i](alpha, beta, d, params);
-        if(err == EDUBOK) {
+        if(err == DUBINSSIM_ERROR_OK) {
             double cost = params[0] + params[1] + params[2];
             if(cost < best_cost) {
                 best_word = i;
@@ -106,10 +108,10 @@ int dubins_init_normalised( double alpha, double beta, double d, DubinsPath* pat
     }
 
     if(best_word == -1) {
-        return EDUBNOPATH;
+        return DUBINSSIM_ERROR_NOPATH;
     }
     path->type = best_word;
-    return EDUBOK;
+    return DUBINSSIM_ERROR_OK;
 }
 
 int dubins_init( double q0[3], double q1[3], double rho, DubinsPath* path )
@@ -120,7 +122,7 @@ int dubins_init( double q0[3], double q1[3], double rho, DubinsPath* path )
     double D = sqrt( dx * dx + dy * dy );
     double d = D / rho;
     if( rho <= 0. ) {
-        return EDUBBADRHO;
+        return DUBINSSIM_ERROR_BADRHO;
     }
     double theta = mod2pi(atan2( dy, dx ));
     double alpha = mod2pi(q0[2] - theta);
@@ -135,92 +137,92 @@ int dubins_init( double q0[3], double q1[3], double rho, DubinsPath* path )
 
 int dubins_LSL( double alpha, double beta, double d, double* outputs )
 {
-    UNPACK_INPUTS(alpha, beta);
+    DUBINSSIM_UNPACK_INPUTS(alpha, beta);
     double tmp0 = d+sa-sb;
     double p_squared = 2 + (d*d) -(2*c_ab) + (2*d*(sa - sb));
     if( p_squared < 0 ) {
-        return EDUBNOPATH;
+        return DUBINSSIM_ERROR_NOPATH;
     }
     double tmp1 = atan2( (cb-ca), tmp0 );
     double t = mod2pi(-alpha + tmp1 );
     double p = sqrt( p_squared );
     double q = mod2pi(beta - tmp1 );
-    PACK_OUTPUTS(outputs);
-    return EDUBOK;
+    DUBINSSIM_PACK_OUTPUTS(outputs);
+    return DUBINSSIM_ERROR_OK;
 }
 
 int dubins_RSR( double alpha, double beta, double d, double* outputs )
 {
-    UNPACK_INPUTS(alpha, beta);
+    DUBINSSIM_UNPACK_INPUTS(alpha, beta);
     double tmp0 = d-sa+sb;
     double p_squared = 2 + (d*d) -(2*c_ab) + (2*d*(sb-sa));
     if( p_squared < 0 ) {
-        return EDUBNOPATH;
+        return DUBINSSIM_ERROR_NOPATH;
     }
     double tmp1 = atan2( (ca-cb), tmp0 );
     double t = mod2pi( alpha - tmp1 );
     double p = sqrt( p_squared );
     double q = mod2pi( -beta + tmp1 );
-    PACK_OUTPUTS(outputs);
-    return EDUBOK;
+    DUBINSSIM_PACK_OUTPUTS(outputs);
+    return DUBINSSIM_ERROR_OK;
 }
 
 int dubins_LSR( double alpha, double beta, double d, double* outputs )
 {
-    UNPACK_INPUTS(alpha, beta);
+    DUBINSSIM_UNPACK_INPUTS(alpha, beta);
     double p_squared = -2 + (d*d) + (2*c_ab) + (2*d*(sa+sb));
     if( p_squared < 0 ) {
-        return EDUBNOPATH;
+        return DUBINSSIM_ERROR_NOPATH;
     }
     double p    = sqrt( p_squared );
     double tmp2 = atan2( (-ca-cb), (d+sa+sb) ) - atan2(-2.0, p);
     double t    = mod2pi(-alpha + tmp2);
     double q    = mod2pi( -mod2pi(beta) + tmp2 );
-    PACK_OUTPUTS(outputs);
-    return EDUBOK;
+    DUBINSSIM_PACK_OUTPUTS(outputs);
+    return DUBINSSIM_ERROR_OK;
 }
 
 int dubins_RSL( double alpha, double beta, double d, double* outputs )
 {
-    UNPACK_INPUTS(alpha, beta);
+    DUBINSSIM_UNPACK_INPUTS(alpha, beta);
     double p_squared = (d*d) -2 + (2*c_ab) - (2*d*(sa+sb));
     if( p_squared< 0 ) {
-        return EDUBNOPATH;
+        return DUBINSSIM_ERROR_NOPATH;
     }
     double p    = sqrt( p_squared );
     double tmp2 = atan2( (ca+cb), (d-sa-sb) ) - atan2(2.0, p);
     double t    = mod2pi(alpha - tmp2);
     double q    = mod2pi(beta - tmp2);
-    PACK_OUTPUTS(outputs);
-    return EDUBOK;
+    DUBINSSIM_PACK_OUTPUTS(outputs);
+    return DUBINSSIM_ERROR_OK;
 }
 
 int dubins_RLR( double alpha, double beta, double d, double* outputs )
 {
-    UNPACK_INPUTS(alpha, beta);
+    DUBINSSIM_UNPACK_INPUTS(alpha, beta);
     double tmp_rlr = (6. - d*d + 2*c_ab + 2*d*(sa-sb)) / 8.;
     if( fabs(tmp_rlr) > 1) {
-        return EDUBNOPATH;
+        return DUBINSSIM_ERROR_NOPATH;
     }
     double p = mod2pi( 2*M_PI - acos( tmp_rlr ) );
     double t = mod2pi(alpha - atan2( ca-cb, d-sa+sb ) + mod2pi(p/2.));
     double q = mod2pi(alpha - beta - t + mod2pi(p));
-    PACK_OUTPUTS( outputs );
-    return EDUBOK;
+    DUBINSSIM_PACK_OUTPUTS( outputs );
+    return DUBINSSIM_ERROR_OK;
 }
 
 int dubins_LRL( double alpha, double beta, double d, double* outputs )
 {
-    UNPACK_INPUTS(alpha, beta);
+    DUBINSSIM_UNPACK_INPUTS(alpha, beta);
     double tmp_lrl = (6. - d*d + 2*c_ab + 2*d*(- sa + sb)) / 8.;
     if( fabs(tmp_lrl) > 1) {
-        return EDUBNOPATH;
+        return DUBINSSIM_ERROR_NOPATH;
     }
     double p = mod2pi( 2*M_PI - acos( tmp_lrl ) );
     double t = mod2pi(-alpha - atan2( ca-cb, d+sa-sb ) + p/2.);
     double q = mod2pi(mod2pi(beta) - alpha -t + mod2pi(p));
-    PACK_OUTPUTS( outputs );
-    return EDUBOK;
+    DUBINSSIM_PACK_OUTPUTS( outputs );
+    return DUBINSSIM_ERROR_OK;
 }
 
 double dubins_path_length( DubinsPath* path )
@@ -239,19 +241,19 @@ int dubins_path_type( DubinsPath* path ) {
 
 void dubins_segment( double t, double qi[3], double qt[3], int type)
 {
-    assert( type == L_SEG || type == S_SEG || type == R_SEG );
+    assert( type == DUBINSSIM_L_SEG || type == DUBINSSIM_S_SEG || type == DUBINSSIM_R_SEG );
 
-    if( type == L_SEG ) {
+    if( type == DUBINSSIM_L_SEG ) {
         qt[0] = qi[0] + sin(qi[2]+t) - sin(qi[2]);
         qt[1] = qi[1] - cos(qi[2]+t) + cos(qi[2]);
         qt[2] = qi[2] + t;
     }
-    else if( type == R_SEG ) {
+    else if( type == DUBINSSIM_R_SEG ) {
         qt[0] = qi[0] - sin(qi[2]-t) + sin(qi[2]);
         qt[1] = qi[1] + cos(qi[2]-t) - cos(qi[2]);
         qt[2] = qi[2] - t;
     }
-    else if( type == S_SEG ) {
+    else if( type == DUBINSSIM_S_SEG ) {
         qt[0] = qi[0] + cos(qi[2]) * t;
         qt[1] = qi[1] + sin(qi[2]) * t;
         qt[2] = qi[2];
@@ -262,7 +264,7 @@ int dubins_path_sample( DubinsPath* path, double t, double q[3] )
 {
     if( t < 0 || t >= dubins_path_length(path) ) {
         // error, parameter out of bounds
-        return EDUBPARAM;
+        return DUBINSSIM_ERROR_PARAM;
     }
 
     // tprime is the normalised variant of the parameter t
@@ -325,8 +327,8 @@ int dubins_path_sample_many( DubinsPath* path, DubinsPathSamplingCallback cb, do
 
 int dubins_path_endpoint( DubinsPath* path, double q[3] )
 {
-    // TODO - introduce a new constant rather than just using EPSILON
-    return dubins_path_sample( path, dubins_path_length(path) - EPSILON, q );
+    // TODO - introduce a new constant rather than just using DUBINSSIM_EPSILON
+    return dubins_path_sample( path, dubins_path_length(path) - DUBINSSIM_EPSILON, q );
 }
 
 int dubins_extract_subpath( DubinsPath* path, double t, DubinsPath* newpath )
@@ -348,4 +350,5 @@ int dubins_extract_subpath( DubinsPath* path, double t, DubinsPath* newpath )
     return 0;
 }
 
+} // namespace DubinsSim
 

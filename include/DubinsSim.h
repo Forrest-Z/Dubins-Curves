@@ -21,19 +21,21 @@
 #define DUBINS_H
 
 // Path types
-#define LSL (0)
-#define LSR (1)
-#define RSL (2)
-#define RSR (3)
-#define RLR (4)
-#define LRL (5)
+#define DUBINSSIM_LSL (0)
+#define DUBINSSIM_LSR (1)
+#define DUBINSSIM_RSL (2)
+#define DUBINSSIM_RSR (3)
+#define DUBINSSIM_RLR (4)
+#define DUBINSSIM_LRL (5)
 
 // Error codes
-#define EDUBOK        (0)   // No error
-#define EDUBCOCONFIGS (1)   // Colocated configurations
-#define EDUBPARAM     (2)   // Path parameterisitation error
-#define EDUBBADRHO    (3)   // the rho value is invalid
-#define EDUBNOPATH    (4)   // no connection between configurations with this word
+#define DUBINSSIM_ERROR_OK        (0)   // No error
+#define DUBINSSIM_ERROR_COCONFIGS (1)   // Colocated configurations
+#define DUBINSSIM_ERROR_PARAM     (2)   // Path parameterisitation error
+#define DUBINSSIM_ERROR_BADRHO    (3)   // the rho value is invalid
+#define DUBINSSIM_ERROR_NOPATH    (4)   // no connection between configurations with this word
+
+namespace DubinsSim {
 
 // The various types of solvers for each of the path types
 typedef int (*DubinsWord)(double, double, double, double* );
@@ -138,4 +140,5 @@ int dubins_RLR( double alpha, double beta, double d, double* outputs );
 
 #endif // DUBINS_H
 
+} // namespace DubinsSim
 
