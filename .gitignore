@@ -1,2 +1,21 @@
+# Ignore temporary files
+.DS_Store
+~*.tmp
+*~
+~$*
+*.swp
+*.swo
+
+# Build files
+.sconsign.dblite
+*.a
+*.o
+*.os
+*.so
+
+# Binaries
+demo_app
+test_app
+test_cli
 dubinstest
-libdubinspaths.so
+
