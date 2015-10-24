@@ -17,10 +17,10 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-#include "DubinsSim.h"
+#include "DubinsCurves.h"
 #include <stdio.h>
 
-using namespace DubinsSim;
+using namespace DubinsCurves;
 
 int printConfiguration(double q[3], double x, void* user_data) {
     printf("%f,%f,%f,%f\n", q[0], q[1], q[2], x);

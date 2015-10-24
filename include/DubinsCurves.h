@@ -21,21 +21,21 @@
 #define DUBINS_H
 
 // Path types
-#define DUBINSSIM_LSL (0)
-#define DUBINSSIM_LSR (1)
-#define DUBINSSIM_RSL (2)
-#define DUBINSSIM_RSR (3)
-#define DUBINSSIM_RLR (4)
-#define DUBINSSIM_LRL (5)
+#define DUBINSCURVES_LSL (0)
+#define DUBINSCURVES_LSR (1)
+#define DUBINSCURVES_RSL (2)
+#define DUBINSCURVES_RSR (3)
+#define DUBINSCURVES_RLR (4)
+#define DUBINSCURVES_LRL (5)
 
 // Error codes
-#define DUBINSSIM_ERROR_OK        (0)   // No error
-#define DUBINSSIM_ERROR_COCONFIGS (1)   // Colocated configurations
-#define DUBINSSIM_ERROR_PARAM     (2)   // Path parameterisitation error
-#define DUBINSSIM_ERROR_BADRHO    (3)   // the rho value is invalid
-#define DUBINSSIM_ERROR_NOPATH    (4)   // no connection between configurations with this word
+#define DUBINSCURVES_ERROR_OK        (0)   // No error
+#define DUBINSCURVES_ERROR_COCONFIGS (1)   // Colocated configurations
+#define DUBINSCURVES_ERROR_PARAM     (2)   // Path parameterisitation error
+#define DUBINSCURVES_ERROR_BADRHO    (3)   // the rho value is invalid
+#define DUBINSCURVES_ERROR_NOPATH    (4)   // no connection between configurations with this word
 
-namespace DubinsSim {
+namespace DubinsCurves {
 
 // The various types of solvers for each of the path types
 typedef int (*DubinsWord)(double, double, double, double* );
@@ -140,5 +140,5 @@ int dubins_RLR( double alpha, double beta, double d, double* outputs );
 
 #endif // DUBINS_H
 
-} // namespace DubinsSim
+} // namespace DubinsCurves
 

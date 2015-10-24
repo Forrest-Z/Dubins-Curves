@@ -18,12 +18,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "DubinsSim.h"
+#include "DubinsCurves.h"
 #include <stdio.h>
 #include <math.h>
 #include <assert.h>
 
-using namespace DubinsSim;
+using namespace DubinsCurves;
 
 char* names[] = {
     "LSL",
